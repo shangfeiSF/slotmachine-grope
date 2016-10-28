@@ -11,6 +11,8 @@ window.buildSlotmachine = function ($) {
       forceStop: false
     }
 
+    this.jq = $.fn && $.fn.jquery !== undefined
+
     this.params = {
       pattern: /([\d\.]*)(.*)/,
       unit: 'px',
@@ -90,7 +92,6 @@ window.buildSlotmachine = function ($) {
         var fade = config.fade !== undefined ? config.fade : true
         var multiple = config.multiple
         var speed = config.speed !== undefined ? config.speed : self.config.speed
-        var easing = config.easing || 'linear'
 
         var machine = self.nodes.machine
 
@@ -104,9 +105,21 @@ window.buildSlotmachine = function ($) {
 
         self._setBlurAndFade(blur, fade)
 
-        machine.animate({
-          'background-position-y': String(backgroundPositionY) + unit
-        }, duration, easing, function () {
+        var props = {}
+        props[self.jq ? 'backgroundPositionY' : 'background-position-y'] = String(backgroundPositionY) + unit
+
+        var easing = 'linear'
+        if (config.easing) {
+          if (self.jq) {
+            if (config.easing === 'swing' || config.easing === 'linear') {
+              easing = config.easing
+            }
+          } else {
+            easing = config.easing
+          }
+        }
+        
+        machine.animate(props, duration, easing, function () {
           onCompleted && onCompleted()
         })
 
