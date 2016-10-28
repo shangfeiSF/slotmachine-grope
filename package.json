@@ -1,0 +1,22 @@
+{
+  "name": "slotmachine-grope",
+  "version": "1.0.0",
+  "description": "JavaScript, Nodejs, Slotmachine, demo",
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "colors": "^0.6.2",
+    "express": "^4.14.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:shangfeiSF/slotmachine-grope.git"
+  },
+  "keywords": [
+    "JavaScript",
+    "Nodejs",
+    "Slotmachine",
+    "demo"
+  ],
+  "author": "shangfeiSF",
+  "license": "ISC"
+}
