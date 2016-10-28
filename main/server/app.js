@@ -13,8 +13,8 @@ var app = express()
 app.use(express.static('../asset'))
 app.use('/pages', express.static('../pages'))
 
-app.get('/slotmachine.zepto.jquery.html', function (req, res) {
-  var file = path.join(__dirname, '../pages/slotmachine.zepto.jquery.html')
+app.get('/slotmachine.zp.jq.html', function (req, res) {
+  var file = path.join(__dirname, '../pages/slotmachine.zp.jq.html')
 
   fs.readFile(file, function (error, data) {
     var html = data.toString('utf-8')
@@ -23,8 +23,8 @@ app.get('/slotmachine.zepto.jquery.html', function (req, res) {
   })
 })
 
-app.get('/slotmachine.jquery.html', function (req, res) {
-  var file = path.join(__dirname, '../pages/slotmachine.jquery.html')
+app.get('/slotmachine.jq.html', function (req, res) {
+  var file = path.join(__dirname, '../pages/slotmachine.jq.html')
 
   fs.readFile(file, function (error, data) {
     var html = data.toString('utf-8')

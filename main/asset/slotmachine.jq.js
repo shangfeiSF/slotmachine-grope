@@ -1,6 +1,5 @@
 (function ($) {
   $(document).ready(function () {
-    //Fast blur
     if ($("filter#slotMachineBlurSVG").length <= 0) {
       $("body").append('<svg version="1.1" xmlns="http://www.w3.org/2000/svg">' +
         '<filter id="slotMachineBlurFilterFast">' +
@@ -9,7 +8,6 @@
         '</svg>');
     }
 
-    //Medium blur
     if ($("filter#slotMachineBlurSVG").length <= 0) {
       $("body").append('<svg version="1.1" xmlns="http://www.w3.org/2000/svg">' +
         '<filter id="slotMachineBlurFilterMedium">' +
@@ -18,7 +16,6 @@
         '</svg>');
     }
 
-    //Slow blur
     if ($("filter#slotMachineBlurSVG").length <= 0) {
       $("body").append('<svg version="1.1" xmlns="http://www.w3.org/2000/svg">' +
         '<filter id="slotMachineBlurFilterSlow">' +
@@ -27,7 +24,6 @@
         '</svg>');
     }
 
-    //Fade mask
     if ($("mask#slotMachineFadeSVG").length <= 0) {
       $("body").append('<svg version="1.1" xmlns="http://www.w3.org/2000/svg">' +
         '<mask id="slotMachineFadeMask" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">' +
@@ -42,7 +38,6 @@
         '</svg>');
     }
 
-    //CSS classes
     $("body").append("<style>" +
       ".slotMachineBlurFast{-webkit-filter: blur(5px);-moz-filter: blur(5px);-o-filter: blur(5px);-ms-filter: blur(5px);filter: blur(5px);filter: url(#slotMachineBlurFilterFast);filter:progid:DXImageTransform.Microsoft.Blur(PixelRadius='5')}" +
       ".slotMachineBlurMedium{-webkit-filter: blur(3px);-moz-filter: blur(3px);-o-filter: blur(3px);-ms-filter: blur(3px);filter: blur(3px);filter: url(#slotMachineBlurFilterMedium);filter:progid:DXImageTransform.Microsoft.Blur(PixelRadius='3')}" +
@@ -52,39 +47,65 @@
       "mask: url(#slotMachineFadeMask);" +
       "}" +
       "</style>");
-  })
+  });
+
+  if (typeof $.easing.easeOutBounce !== "function") {
+    $.extend($.easing, {
+      easeOutBounce: function (x, t, b, c, d) {
+        if ((t /= d) < (1 / 2.75)) {
+          return c * (7.5625 * t * t) + b;
+        } else if (t < (2 / 2.75)) {
+          return c * (7.5625 * (t -= (1.5 / 2.75)) * t + 0.75) + b;
+        } else if (t < (2.5 / 2.75)) {
+          return c * (7.5625 * (t -= (2.25 / 2.75)) * t + 0.9375) + b;
+        } else {
+          return c * (7.5625 * (t -= (2.625 / 2.75)) * t + 0.984375) + b;
+        }
+      },
+    });
+  }
 
   $.fn.slotMachine = function (settings) {
+
     var defaults = {
-      active: 0,
-      delay: 200,
-      repeat: false
-    }
+      active: 0, //Active element [int]
+      delay: 200, //Animation time [int]
+      repeat: false //Repeat delay [false||int]
+    };
 
-    settings = $.extend(defaults, settings)
+    settings = $.extend(defaults, settings); //Plugin settings
 
-    var $slot = $(this)
-    var $titles = $slot.children()
-    var $container
-    var _maxTop
-    var _timer = null
-    var _continueTimer = null
-    var _forceStop = false
-    var _oncompleteShuffling = null
-    var _isRunning = false
-    var _active = {
-      index: settings.active,
-      el: $titles.get(settings.active)
-    }
+    var $slot = $(this), //jQuery selector
+      $titles = $slot.children(), //Slot Machine elements
+      $container, //Container to wrap $titles
+      _maxTop, //Max marginTop offset
+      _timer = null, //Timeout recursive function to handle auto (settings.repeat)
+      _currentAnim = null, //Current playing jQuery animation
+      _forceStop = false, //Force execution for some functions
+      _oncompleteShuffling = null, //Callback function
+      _isRunning = false, //Machine is running?
+      _active = { //Current active element
+        index: settings.active,
+        el: $titles.get(settings.active)
+      };
 
+    /**
+     * @desc PRIVATE - Get element offset top
+     * @param int index - Element position
+     * @return int - Negative offset in px
+     */
     function _getOffset(index) {
       var offset = 0;
       for (var i = 0; i < index; i++) {
-        offset += $($titles.get(i)).height();
+        offset += $($titles.get(i)).outerHeight();
       }
       return -offset;
     }
 
+    /**
+     * @desc PRIVATE - Get random element different than last shown
+     * @return object - Element index and HTML node
+     */
     function _getRandom() {
       var rnd;
       do {
@@ -99,16 +120,28 @@
       return choosen;
     }
 
+    /**
+     * @desc PRIVATE - Get currently active element
+     * @return object elWithIndex - Element index and HTML node
+     */
     function _getActive() {
       //Update last choosen element index
       return _active;
     }
 
+    /**
+     * @desc PRIVATE - Set currently showing element and makes active
+     * @param object elWithIndex - Element index and HTML node
+     */
     function _setActive(elWithIndex) {
       //Update last choosen element index
       _active = elWithIndex;
     }
 
+    /**
+     * @desc PRIVATE - Get the previous element
+     * @return int - Element index and HTML node
+     */
     function _getPrev() {
       var prevIndex = _active.index - 1 < 0 ? $titles.length - 1 : _active.index - 1;
       var prevObj = {
@@ -118,6 +151,10 @@
       return prevObj;
     }
 
+    /**
+     * @desc PRIVATE - Get the next element
+     * @return int - Element index and HTML node
+     */
     function _getNext() {
       var nextIndex = _active.index + 1 < $titles.length ? _active.index + 1 : 0;
       var nextObj = {
@@ -127,6 +164,11 @@
       return nextObj;
     }
 
+    /**
+     * @desc PRIVATE - Set CSS classes to make speed effect
+     * @param string speed - Element speed [fast||medium||slow]
+     * @param string||boolean fade - Set fade gradient effect
+     */
     function _setAnimationFX(speed, fade) {
       $slot.add($titles).removeClass("slotMachineBlurFast slotMachineBlurMedium slotMachineBlurSlow");
       switch (speed) {
@@ -148,10 +190,17 @@
       }
     }
 
+    /**
+     * @desc PRIVATE - Reset active element position
+     */
     function _resetPosition() {
       $container.css("margin-top", _getOffset(_active.index));
     }
 
+    /**
+     * @desc PRIVATE - Starts shuffling the elements
+     * @param int count - Number of shuffles (undefined to make infinite animation
+     */
     function _shuffle(count) {
 
       _isRunning = true;
@@ -169,14 +218,16 @@
         if (_isVisible()) {
 
           //Perform animation
-          $container.animate({
+          _currentAnim = $container.animate({
             marginTop: _maxTop
           }, delay, function () {
 
+            //Remove animation var
+            _currentAnim = null;
+
             //Reset top position
-            if (!_forceStop) {
-              $container.css("margin-top", 0);
-            }
+            $container.css("margin-top", 0);
+
           });
 
         } else {
@@ -188,38 +239,15 @@
         }
 
         //Oncomplete animation
-        _continueTimer = setTimeout(function () {
+        setTimeout(function () {
+
           if (_forceStop === false) {
+
+            //Repeat animation
             _shuffle();
-          } else {
-            clearTimeout(_continueTimer)
-            var prefix = '', eventPrefix, transform,
-              vendors = {Webkit: 'webkit', Moz: '', O: 'o'},
-              testEl = document.createElement('div')
 
-            if (testEl.style.transform === undefined) $.each(vendors, function (vendor, event) {
-              if (testEl.style[vendor + 'TransitionProperty'] !== undefined) {
-                prefix = '-' + vendor.toLowerCase() + '-'
-                eventPrefix = event
-                return false
-              }
-            })
-
-            var cssReset = {}
-
-            transform = prefix + 'transform'
-            cssReset[transitionProperty = prefix + 'transition-property'] =
-              cssReset[transitionDuration = prefix + 'transition-duration'] =
-                cssReset[transitionDelay = prefix + 'transition-delay'] =
-                  cssReset[transitionTiming = prefix + 'transition-timing-function'] =
-                    cssReset[animationName = prefix + 'animation-name'] =
-                      cssReset[animationDuration = prefix + 'animation-duration'] =
-                        cssReset[animationDelay = prefix + 'animation-delay'] =
-                          cssReset[animationTiming = prefix + 'animation-timing-function'] = ''
-
-            $container.parent().removeClass('slotMachineGradient')
-            $container.children().removeClass('slotMachineBlurFast slotMachineBlurMedium slotMachineBlurSlow slotMachineGradient')
           }
+
         }, delay + 25);
 
         //Stop animation after {count} repeats
@@ -245,17 +273,20 @@
           if (_isVisible()) {
 
             //Perform animation
-            $container.animate({
+            _currentAnim = $container.animate({
               marginTop: _maxTop
             }, delay, function () {
 
+              //Remove animation var
+              _currentAnim = null;
+
               //Reset top position
-              if (!_forceStop) {
-                $container.css("margin-top", 0);
-              }
+              $container.css("margin-top", 0);
+
             });
 
           } else {
+
             _setAnimationFX("stop");
 
             _resetPosition();
@@ -281,6 +312,9 @@
 
     }
 
+    /**
+     * @desc PRIVATE - Perform Shuffling calback
+     */
     function completeCallback() {
 
       if (typeof _oncompleteShuffling === "function") {
@@ -293,8 +327,16 @@
 
     }
 
+    /**
+     * @desc PRIVATE - Stop shuffling the elements
+     * @param int||boolean nowOrRepeations - Number of repeations to stop (true to stop NOW)
+     */
     function _stop(nowOrRepeations, getElementFn) {
-      _forceStop = true;
+
+      //Stop animation
+      if (_currentAnim !== null) {
+        _currentAnim.stop();
+      }
 
       //Get element
       var rnd;
@@ -332,27 +374,38 @@
           //Perform animation
           $container.animate({
             marginTop: offset
-          }, delay, completeCallback);
+          }, delay, "easeOutBounce", completeCallback);
 
         } else {
 
           _setAnimationFX("stop");
 
           _resetPosition();
+
         }
 
+        //Oncomplete animation
         setTimeout(function () {
+
           _setAnimationFX("stop");
 
-          _isRunning = false
-        }, delay + 25)
+          _isRunning = false;
+
+        }, delay + 25);
+
+        //Stop animation sloooooooowly
+      } else {
+
+        _shuffle(nowOrRepeations || 3);
 
       }
-      else {
-        _shuffle(nowOrRepeations || 3);
-      }
+
     }
 
+    /**
+     * @desc PRIVATE - Checks if the machine is on the screen
+     * @return int - Returns true if machine is on the screen
+     */
     function _isVisible() {
       //Stop animation if element is [above||below] screen, best for performance
       var above = $slot.offset().top > $(window).scrollTop() + $(window).height(),
@@ -361,9 +414,13 @@
       return !above && !below;
     }
 
+    /**
+     * @desc PRIVATE - Start auto shufflings, animation stops each 3 repeations. Then restart animation recursively
+     */
     function _auto(delay) {
 
       if (_forceStop === false) {
+
         delay = delay === undefined ? 1 : settings.repeat + 1000;
 
         _timer = setTimeout(function () {
@@ -384,52 +441,99 @@
 
     $slot.css("overflow", "hidden");
 
+    //Wrap elements inside $container
     $titles.wrapAll("<div class='slotMachineContainer' />");
     $container = $slot.find(".slotMachineContainer");
 
+    //Set max top offset
     _maxTop = -$container.height();
 
+    //Show active element
     $container.css("margin-top", _getOffset(settings.active));
 
+    //Start auto animation
     if (settings.repeat !== false) {
+
       _auto();
+
     }
 
+
+    //Public methods
+
+
+    /**
+     * @desc PUBLIC - Starts shuffling the elements
+     * @param int count - Number of shuffles (undefined to make infinite animation
+     */
     $slot.shuffle = function (count, oncomplete) {
+
       _forceStop = false;
+
       _oncompleteShuffling = oncomplete;
+
       _shuffle(count);
+
     };
 
+    /**
+     * @desc PUBLIC - Stop shuffling the elements
+     * @param int||boolean nowOrRepeations - Number of repeations to stop (true to stop NOW)
+     */
     $slot.stop = function (nowOrRepeations) {
+
+      _forceStop = true;
+
       if (settings.repeat !== false && _timer !== null) {
+
         clearTimeout(_timer);
+
       }
+
       _stop(nowOrRepeations);
+
     };
 
+    /**
+     * @desc PUBLIC - SELECT previous element relative to the current active element
+     */
     $slot.prev = function () {
 
       _stop(true, _getPrev);
 
     };
 
+    /**
+     * @desc PUBLIC - SELECT next element relative to the current active element
+     */
     $slot.next = function () {
 
       _stop(true, _getNext);
 
     };
 
+    /**
+     * @desc PUBLIC - Get selected element
+     * @return object - Element index and HTML node
+     */
     $slot.active = function () {
       return _getActive();
     };
 
+    /**
+     * @desc PUBLIC - Check if the machine is doing stuff
+     * @return boolean - Machine is shuffling
+     */
     $slot.isRunning = function () {
       return _isRunning;
     };
 
+    /**
+     * @desc PUBLIC - Start auto shufflings, animation stops each 3 repeations. Then restart animation recursively
+     */
     $slot.auto = _auto;
 
     return $slot;
-  }
-})(window.Zepto);
+
+  };
+})(window.jQuery);

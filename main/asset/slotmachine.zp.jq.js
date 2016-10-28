@@ -1,4 +1,4 @@
-(function ($) {
+window.buildSlotmachine = function ($) {
   function SlotMachine(machine, config) {
     this.config = $.extend({}, this.defaultConfig, config)
 
@@ -331,5 +331,5 @@
     }
   )
 
-  window.SlotMachine = SlotMachine
-})(window.Zepto);
+  return SlotMachine
+}
