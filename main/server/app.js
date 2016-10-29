@@ -11,10 +11,11 @@ Promise.promisifyAll(fs)
 var app = express()
 
 app.use(express.static('../asset'))
-app.use('/pages', express.static('../pages'))
+app.use('/jq', express.static('../pages/slotmachine.jq'))
+app.use('/zpjq', express.static('../pages/slotmachine.zp.jq'))
 
-app.get('/slotmachine.zp.jq.html', function (req, res) {
-  var file = path.join(__dirname, '../pages/slotmachine.zp.jq.html')
+app.get('/index.zp.jq.html', function (req, res) {
+  var file = path.join(__dirname, '../pages/slotmachine.zp.jq/slotmachine.zp.jq.html')
 
   fs.readFile(file, function (error, data) {
     var html = data.toString('utf-8')
@@ -23,8 +24,8 @@ app.get('/slotmachine.zp.jq.html', function (req, res) {
   })
 })
 
-app.get('/slotmachine.jq.html', function (req, res) {
-  var file = path.join(__dirname, '../pages/slotmachine.jq.html')
+app.get('/index.jq.html', function (req, res) {
+  var file = path.join(__dirname, '../pages/slotmachine.jq/slotmachine.jq.html')
 
   fs.readFile(file, function (error, data) {
     var html = data.toString('utf-8')
