@@ -130,7 +130,28 @@
     build_floot_3(SlotMachine)
   }
 
-   window.build = build
+  window.build = build
 })()
+
+var params = window.location.search.slice(1).split('&')
+
+var useJquery = false
+for (var i = 0; i < params.length; i++) {
+  if (params[i] === 'jq') {
+    useJquery = true
+    break
+  }
+}
+
+var script = document.createElement('script')
+script.type = "text/javascript"
+script.src = useJquery ? '/jquery.js' : '/zepto.min.js'
+script.onload = function () {
+  $(document).ready(function () {
+    window.build()
+  })
+}
+
+document.getElementsByTagName('head')[0].appendChild(script)
 
 

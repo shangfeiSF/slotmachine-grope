@@ -1,33 +1,11 @@
 <!doctype html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-        <title>Slot Machine</title>
+        <title>Slot Machine for Zepto and jQuery</title>
 
-        <link rel="stylesheet" href="pages/slotmachine.css">
-        <script type="text/javascript" src="/slotmachine.zp.jq.js"></script>
-        <script type="text/javascript" src="/pages/build.zp.jq.js"></script>
-
-        <script type="text/javascript">
-            var params = window.location.search.slice(1).split('&')
-
-            var useJquery = false
-            for (var i = 0; i < params.length; i++) {
-                if (params[i] === 'jq') {
-                    useJquery = true
-                    break
-                }
-            }
-
-            var script = document.createElement('script')
-            script.type = "text/javascript"
-            script.src = useJquery ? '/jquery.js' : '/zepto.min.js'
-            script.onload = function () {
-                window.build()
-            }
-
-            document.getElementsByTagName('head')[0].appendChild(script)
-        </script>
+        <link rel="stylesheet" href="zpjq/slotmachine.zp.jq.css">
+        <script type="text/javascript" src="zpjq/slotmachine.zp.jq.js"></script>
+        <script type="text/javascript" src="zpjq/build.zp.jq.js"></script>
     </head>
     <body>
         <div class="floor font40">
