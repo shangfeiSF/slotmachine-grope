@@ -1,0 +1,84 @@
+.floor {
+    background-color: #DCD293;
+    padding: 75px 0px;
+    width: 100%;
+    border-top: 20px dotted #A48E4E;
+}
+
+.button {
+    -moz-box-shadow: inset 0px 1px 0px 0px #fce2c1;
+    -webkit-box-shadow: inset 0px 1px 0px 0px #fce2c1;
+    box-shadow: inset 0px 1px 0px 0px #fce2c1;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #ffc477), color-stop(1, #fb9e25));
+    background: -moz-linear-gradient(center top, #ffc477 5%, #fb9e25 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffc477', endColorstr='#fb9e25');
+    background-color: #ffc477;
+    border-radius: 75px;
+    text-indent: 0px;
+    border: 6px solid #eeb44f;
+    display: inline-block;
+    overflow: hidden;
+    color: #ffffff;
+    font-size: 50px;
+    font-weight: bold;
+    font-style: normal;
+    height: 100px;
+    line-height: 100px;
+    width: 100px;
+    text-decoration: none;
+    text-align: center;
+    text-shadow: 1px 1px 0px #cc9f52;
+    margin-left: 50px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #fb9e25), color-stop(1, #ffc477));
+    background: -moz-linear-gradient(center top, #fb9e25 5%, #ffc477 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fb9e25', endColorstr='#ffc477');
+    background-color: #fb9e25;
+}
+
+.button:active {
+    position: relative;
+    top: 1px;
+}
+
+.machine {
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    display: inline-block;
+    text-align: center;
+    border: 5px solid #000;
+    background-color: #ffffff;
+}
+
+.machine .slot {
+    width: 100px;
+    height: 100px;
+}
+
+.slot1 {
+    background-image: url("/images/png/slot1.png")
+}
+
+.slot2 {
+    background-image: url("/images/png/slot2.png")
+}
+
+.slot3 {
+    background-image: url("/images/png/slot3.png")
+}
+
+.slot4 {
+    background-image: url("/images/png/slot4.png")
+}
+
+.slot5 {
+    background-image: url("/images/png/slot5.png")
+}
+
+.slot6 {
+    background-image: url("/images/png/slot6.png")
+}
