@@ -3,9 +3,9 @@
     this.config = $.extend({}, this.defaultConfig, config)
 
     this.nodes = {
+      container: 'container',
       machine: $(machine),
       slots: $(machine).children(),
-      container: 'container'
     }
 
     this.states = {
@@ -297,22 +297,20 @@
         var fade = config.fade !== undefined ? config.fade : true
         var multiple = config.multiple
         var speed = config.speed !== undefined ? config.speed : self.config.speed
-
-        var container = self.nodes.container
+        var easing = config.easing || 'linear'
 
         var height = self.params.height
         var unit = self.params.unit
 
         var multiple = multiple !== undefined ? multiple : self.slots.length
-        var originalMarginTop = +parseFloat(container.css('margin-top'))
-        var marginTop = String(originalMarginTop - parseFloat(multiple * height)) + unit
+        var marginTop = String(-parseFloat(multiple * height)) + unit
         var duration = Math.abs(+parseInt(multiple * speed))
 
         self._setBlurAndFade(blur, fade)
 
         self.active.animate = self.nodes.container.animate({
           marginTop: marginTop
-        }, duration, function () {
+        }, duration, easing, function () {
           self.active.animate = null
 
           onCompleted && onCompleted()
@@ -333,13 +331,18 @@
         }
       },
 
-      randomSlot: function (times) {
+      randomSlot: function () {
         var self = this
 
-        var times = times || Math.floor(Math.random() * 10)
+        var times = Math.floor(Math.random() * 10)
         var active = self.active
+        var slotsLength = self.nodes.slots.length
 
-        var length = self.config.finals.length
+        var finals = $.map(self.config.finals, function (final) {
+          return final < slotsLength ? final : (final % slotsLength)
+        })
+
+        var length = finals.length
 
         var random = Math.floor(Math.random() * length)
         while (times > 0) {
@@ -348,7 +351,7 @@
         }
 
         return {
-          index: Number(self.config.finals[random])
+          index: Number(finals[random])
         }
       },
 
@@ -359,48 +362,62 @@
 
         if (times === undefined) {
           self._animateMarginTop({
-            blur: 'medium',
+            blur: 'fast',
             fade: true
           }, function () {
-            if (self.states.forceStop) {
-              container.css("margin-top", 0)
+            container.css("margin-top", 0)
 
-              self.gamble({
-                onCompleted: onCompleted
-              })
-            }
-            else {
-              self.roll(times, onCompleted)
-            }
+            !self.states.forceStop && self.roll(times, onCompleted)
           })
         }
         else {
           if (times >= 1) {
-            if (times > 1) {
-              _setAnimationFX("fast", true)
-              delay /= 2
-            }
-            else {
-              _setAnimationFX("medium", true)
-            }
-
-            _currentAnim = container.animate({
-              marginTop: _maxTop
-            }, delay, function () {
-              _currentAnim = null;
-              $container.css("margin-top", 0);
-            });
-
-            setTimeout(function () {
+            self._animateMarginTop({
+              blur: times > 1 ? 'fast' : 'medium',
+              fade: true
+            }, function () {
+              container.css("margin-top", 0)
               self.roll(times - 1)
-            }, 25)
-          } else {
-            _stop(true)
+            })
+          }
+          else {
+            self.gamble({
+              stopnow: true,
+              onCompleted: onCompleted
+            })
           }
         }
       },
 
-      gamble: function () {
+      gamble: function (config, gambleMethod) {
+        var self = this
+
+        var container = self.nodes.container
+
+        self.active.animate !== null && self.active.animate.stop()
+
+        var random = typeof gambleMethod === 'function' ? gambleMethod() : self.randomSlot()
+        random.index === 0 && container.css('margin-top', (-self.params.height / 2) + self.params.unit)
+
+        if (config.stopnow || config.repeats <= 1) {
+          self._animateMarginTop({
+            blur: 'slow',
+            fade: true,
+            multiple: random.index,
+            easing: 'easeOutBounce'
+          }, function () {
+            self.active.index = random.index
+            self.states.running = false
+            self.states.forceStop = false
+
+            self._setBlurAndFade('stop')
+
+            config.onCompleted && config.onCompleted()
+          })
+        }
+        else {
+          self.roll(config.repeats || 3)
+        }
       },
 
       start: function (position) {
@@ -427,8 +444,10 @@
 
   $.fn.slotMachine = function (config) {
     var machine = $(this)
+    var config = config
 
     var slotmachine = new SlotMachine(machine, config)
+    var cycleTimer = null
 
     $.extend(machine, {
       isRunning: function () {
@@ -456,6 +475,7 @@
         slotmachine.states.running = true
 
         slotmachine.gamble({
+          stopnow: true,
           onCompleted: onCompleted
         }, slotmachine.prevSlot.bind(slotmachine))
       },
@@ -466,13 +486,39 @@
         slotmachine.states.running = true
 
         slotmachine.gamble({
+          stopnow: true,
           onCompleted: onCompleted
         }, slotmachine.nextSlot.bind(slotmachine))
 
       },
 
-      stop: function () {
+      stop: function (stopnowOrRepeats) {
         slotmachine.states.forceStop = true
+
+        if (config.repeat && cycleTimer !== null) {
+          clearTimeout(cycleTimer)
+        }
+
+        slotmachine.gamble(stopnowOrRepeats)
+      },
+
+      cycle: function (config) {
+        var self = this
+
+        var config = config || {
+            delay: 1000,
+            times: 3,
+            onCompleted: null
+          }
+
+        if (!slotmachine.states.forceStop) {
+          cycleTimer = setTimeout(function () {
+              !slotmachine.states.forceStop && slotmachine.roll(config.times, config.onCompleted)
+
+              cycleTimer = self.cycle(config)
+            }, config.delay
+          )
+        }
       },
 
       start: function (config, onCompleted) {
