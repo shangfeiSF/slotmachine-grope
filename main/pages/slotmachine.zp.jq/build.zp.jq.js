@@ -13,7 +13,7 @@
       origin: 4,
       delay: 500,
       times: 3,
-      finals: [2, 3, 4, 5, 6, 7, 8]
+      finals: []
     })
     var machine2 = new SlotMachine('#machine_2', {
       origin: 1,

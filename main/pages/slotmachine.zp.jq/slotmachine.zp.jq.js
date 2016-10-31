@@ -118,7 +118,7 @@ window.buildSlotmachine = function ($) {
             easing = config.easing
           }
         }
-        
+
         machine.animate(props, duration, easing, function () {
           onCompleted && onCompleted()
         })
@@ -262,18 +262,18 @@ window.buildSlotmachine = function ($) {
         var self = this
 
         var times = times || Math.floor(Math.random() * 10)
-        var active = self.active
 
-        var length = self.config.finals.length
+        var finals = self.config.finals
+        var seed = finals.length ? finals.length : 10
 
-        var random = Math.floor(Math.random() * length)
+        var random = Math.floor(Math.random() * seed)
         while (times > 0) {
-          random = Math.floor(Math.random() * length)
-          random !== active.index && times--
+          random = Math.floor(Math.random() * seed)
+          times--
         }
 
         return {
-          index: Number(self.config.finals[random])
+          index: finals.length ? finals[random] : random
         }
       }
     },
