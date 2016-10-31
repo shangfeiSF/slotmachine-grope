@@ -72,12 +72,15 @@
     })
 
     machine4.start({
+      auto: false,
       position: true
     })
     machine5.start({
+      auto: false,
       position: true
     })
     machine6.start({
+      auto: false,
       position: true
     })
 
@@ -111,6 +114,7 @@
       speed: 400
     })
     machine7.start({
+      auto: false,
       position: true
     })
 
@@ -131,27 +135,27 @@
   }
 
   window.build = build
-})()
+})();
 
-var params = window.location.search.slice(1).split('&')
+(function () {
+  var params = window.location.search.slice(1).split('&')
 
-var useJquery = false
-for (var i = 0; i < params.length; i++) {
-  if (params[i] === 'jq') {
-    useJquery = true
-    break
+  var useJquery = false
+  for (var i = 0; i < params.length; i++) {
+    if (params[i] === 'jq') {
+      useJquery = true
+      break
+    }
   }
-}
 
-var script = document.createElement('script')
-script.type = "text/javascript"
-script.src = useJquery ? '/jquery.js' : '/zepto.min.js'
-script.onload = function () {
-  $(document).ready(function () {
-    window.build()
-  })
-}
+  var script = document.createElement('script')
+  script.type = "text/javascript"
+  script.src = useJquery ? '/jquery.js' : '/zepto.min.js'
+  script.onload = function () {
+    $(document).ready(function () {
+      window.build()
+    })
+  }
 
-document.getElementsByTagName('head')[0].appendChild(script)
-
-
+  document.getElementsByTagName('head')[0].appendChild(script)
+})();
