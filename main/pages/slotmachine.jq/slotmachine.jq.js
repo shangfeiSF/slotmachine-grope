@@ -1,4 +1,6 @@
 (function ($) {
+  var booted = false
+
   function SlotMachine(machine, config) {
     this.config = $.extend({}, this.defaultConfig, config)
 
@@ -55,7 +57,7 @@
       }
     }
 
-    this.boot()
+    !booted && this.boot()
   }
 
   $.extend(SlotMachine.prototype,
@@ -234,6 +236,8 @@
       boot: function () {
         var self = this
 
+        booted = true
+
         self.bootEasing()
 
         $(document).ready(function () {
@@ -336,27 +340,22 @@
         }
       },
 
-      randomSlot: function () {
+      randomSlot: function (times) {
         var self = this
 
-        var times = Math.floor(Math.random() * 10)
-        var active = self.active
-        var slotsLength = self.nodes.slots.length
+        var times = times || Math.floor(Math.random() * 10)
 
-        var finals = $.map(self.config.finals, function (final) {
-          return final < slotsLength ? final : (final % slotsLength)
-        })
+        var finals = self.config.finals
+        var seed = finals.length ? finals.length : self.nodes.slots.length
 
-        var length = finals.length
-
-        var random = Math.floor(Math.random() * length)
+        var random = Math.floor(Math.random() * seed)
         while (times > 0) {
-          random = Math.floor(Math.random() * length)
-          random !== active.index && times--
+          random = Math.floor(Math.random() * seed)
+          times--
         }
 
         return {
-          index: Number(finals[random])
+          index: finals.length ? finals[random] : random
         }
       },
 
@@ -443,6 +442,10 @@
 
         slots.wrapAll('<div class="' + nodes.container + '"></div>')
         self.nodes.container = machine.find('.' + nodes.container)
+
+        // unfinished
+        $(slots.get(0)).clone().appendTo(machine)
+        self.nodes.slots.push(slots.get(0))
 
         position && self.nodes.container.css("margin-top", self._getMarginTop(self.config.origin))
 

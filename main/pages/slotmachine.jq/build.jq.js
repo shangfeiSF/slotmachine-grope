@@ -25,7 +25,7 @@
       delay: 700,
       times: 3,
       speed: 140,
-      finals: [2, 3, 4, 5]
+      finals: []
     })
 
     machine1.start({
