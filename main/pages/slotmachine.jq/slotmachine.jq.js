@@ -64,8 +64,8 @@
       defaultConfig: {
         origin: 0,
         delay: 0,
+        times: 1,
         speed: 150,
-        slowdown: 2,
         finals: [0]
       },
     },
@@ -232,12 +232,14 @@
       },
 
       boot: function () {
-        this.bootEasing()
+        var self = this
+
+        self.bootEasing()
 
         $(document).ready(function () {
-          var svg = this.bootSVG()
+          var svg = self.bootSVG()
 
-          var style = this.bootStyle()
+          var style = self.bootStyle()
 
           $('body').append(svg + style)
         })
@@ -259,9 +261,12 @@
       _getMarginTop: function (position) {
         var self = this
 
+        var solts = self.nodes.slots
+        var position = position % solts.length
+
         var result = 0
         for (var i = 0; i < position; i++) {
-          result += $(self.nodes.slots.get(i)).outerHeight()
+          result += $(solts.get(i)).outerHeight()
         }
 
         return -result
@@ -283,7 +288,7 @@
           return klass === speed
         })
 
-        matches.length == 1 && machine.addClass(matches.pop())
+        matches.length == 1 && machine.addClass(matches.pop());
 
         (!fade || speed === 'stop') ?
           machine.removeClass(bootConfig.fadeConfig.klass) :
@@ -302,7 +307,7 @@
         var height = self.params.height
         var unit = self.params.unit
 
-        var multiple = multiple !== undefined ? multiple : self.slots.length
+        var multiple = multiple !== undefined ? multiple : self.nodes.slots.length
         var marginTop = String(-parseFloat(multiple * height)) + unit
         var duration = Math.abs(+parseInt(multiple * speed))
 
@@ -412,7 +417,11 @@
 
             self._setBlurAndFade('stop')
 
-            config.onCompleted && config.onCompleted()
+            config.onCompleted && config.onCompleted({
+              node: self.nodes.machine,
+              machine: self,
+              active: self.active
+            })
           })
         }
         else {
@@ -435,7 +444,7 @@
         slots.wrapAll('<div class="' + nodes.container + '"></div>')
         self.nodes.container = machine.find('.' + nodes.container)
 
-        position && self.nodes.container.css("margin-top", self._getMarginTop(position))
+        position && self.nodes.container.css("margin-top", self._getMarginTop(self.config.origin))
 
         machine.css("overflow", "hidden")
       }
