@@ -8,23 +8,23 @@
   function build_floot_1() {
     var machine1 = $("#machine_1").slotMachine({
       origin: 0,
-      delay: 300,
+      delay: 700,
       times: 5,
-      speed: 100,
+      speed: 200,
       finals: [0, 1, 2]
     })
     var machine2 = $("#machine_2").slotMachine({
       origin: 1,
-      delay: 500,
+      delay: 700,
       times: 4,
-      speed: 120,
+      speed: 250,
       finals: [1, 2, 3]
     })
     var machine3 = $("#machine_3").slotMachine({
       origin: 2,
       delay: 700,
       times: 3,
-      speed: 140,
+      speed: 300,
       finals: []
     })
 
@@ -55,19 +55,16 @@
     var machine4 = $("#machine_4").slotMachine({
       origin: 1,
       delay: 100,
-      times: 5,
       finals: [3, 4, 5]
     })
     var machine5 = $("#machine_5").slotMachine({
       origin: 2,
       delay: 200,
-      times: 3,
       finals: [0, 1, 2, 3, 4, 5]
     })
     var machine6 = $("#machine_6").slotMachine({
       origin: 3,
       delay: 300,
-      times: 2,
       finals: [0, 1, 2, 3, 4, 5]
     })
 
@@ -95,13 +92,20 @@
 
     $("#stop").click(function () {
       if (machine4.isRunning()) {
-        machine4.stop()
+        // stop after roll 2 times
+        machine4.stop({
+          repeats: 2
+        })
       }
       else {
         if (machine5.isRunning()) {
-          machine5.stop()
+          // stop after roll 1 time
+          machine5.stop({
+            stopnow: false
+          })
         }
         else {
+          // stop immediately
           machine6.isRunning() && machine6.stop()
         }
       }
@@ -128,10 +132,29 @@
     })
   }
 
+  function build_floot_4() {
+    var machine8 = $("#machine_8").slotMachine({
+      origin: 1,
+      speed: 150
+    })
+
+    machine8.start({
+      auto: false,
+      position: true
+    })
+
+    machine8.cycle({
+      delay: 2000,
+      times: 5,
+      onCompleted: onComplete
+    })
+  }
+
   function build() {
     build_floot_1()
     build_floot_2()
     build_floot_3()
+    build_floot_4()
   }
 
   window.build = build

@@ -8,6 +8,7 @@
       container: 'container',
       machine: $(machine),
       slots: $(machine).children(),
+      patchSlot: null
     }
 
     this.states = {
@@ -66,9 +67,8 @@
       defaultConfig: {
         origin: 0,
         delay: 0,
-        times: 1,
         speed: 150,
-        finals: [0]
+        finals: []
       },
     },
     {
@@ -381,7 +381,7 @@
               fade: true
             }, function () {
               container.css("margin-top", 0)
-              self.roll(times - 1)
+              self.roll(times - 1, onCompleted)
             })
           }
           else {
@@ -403,7 +403,7 @@
         var random = typeof gambleMethod === 'function' ? gambleMethod() : self.randomSlot()
         random.index === 0 && container.css('margin-top', (-self.params.height / 2) + self.params.unit)
 
-        if (config.stopnow || config.repeats <= 1) {
+        if (config.stopnow || config.repeats < 1) {
           self._animateMarginTop({
             blur: 'slow',
             fade: true,
@@ -424,7 +424,7 @@
           })
         }
         else {
-          self.roll(config.repeats || 3)
+          self.roll(config.repeats || 1)
         }
       },
 
@@ -443,12 +443,10 @@
         slots.wrapAll('<div class="' + nodes.container + '"></div>')
         self.nodes.container = machine.find('.' + nodes.container)
 
-        // unfinished
-        $(slots.get(0)).clone().appendTo(machine)
-        self.nodes.slots.push(slots.get(0))
+        self.nodes.patchSlot = $(slots.get(0)).clone()
+        self.nodes.patchSlot.appendTo(self.nodes.container)
 
         position && self.nodes.container.css("margin-top", self._getMarginTop(self.config.origin))
-
         machine.css("overflow", "hidden")
       }
     }
@@ -505,6 +503,11 @@
       },
 
       stop: function (stopnowOrRepeats) {
+        var stopnowOrRepeats = stopnowOrRepeats || {
+            stopnow: true,
+            repeats: 0
+          }
+
         slotmachine.states.forceStop = true
 
         if (config.repeat && cycleTimer !== null) {
@@ -514,33 +517,36 @@
         slotmachine.gamble(stopnowOrRepeats)
       },
 
-      cycle: function (config) {
+      cycle: function (settings) {
         var self = this
 
-        var config = config || {
+        var settings = settings || {
             delay: 1000,
             times: 3,
             onCompleted: null
           }
 
-        if (!slotmachine.states.forceStop) {
-          cycleTimer = setTimeout(function () {
-              !slotmachine.states.forceStop && slotmachine.roll(config.times, config.onCompleted)
+        if (slotmachine.states.forceStop)  return false
 
-              cycleTimer = self.cycle(config)
-            }, config.delay
-          )
-        }
+        cycleTimer = setTimeout(function () {
+          !slotmachine.states.forceStop && slotmachine.roll(settings.times, function (result) {
+            clearTimeout(cycleTimer)
+
+            settings.onCompleted && settings.onCompleted(result)
+
+            cycleTimer = self.cycle(settings)
+          })
+        }, settings.delay)
       },
 
-      start: function (config, onCompleted) {
+      start: function (settings, onCompleted) {
         var self = this
 
-        var config = config || {}
+        var settings = settings || {}
 
-        slotmachine.start(config.position)
+        slotmachine.start(settings.position)
 
-        config.auto && self.shuffle(onCompleted)
+        settings.auto && self.shuffle(onCompleted)
       },
     })
 
