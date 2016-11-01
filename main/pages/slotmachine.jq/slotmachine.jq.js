@@ -4,6 +4,8 @@
   function SlotMachine(machine, config) {
     this.config = $.extend({}, this.defaultConfig, config)
 
+    this.config.origin = this.config.origin % $(machine).children().length
+
     this.nodes = {
       container: 'container',
       machine: $(machine),
@@ -19,12 +21,13 @@
     this.params = {
       pattern: /([\d\.]*)(.*)/,
       unit: 'px',
-      height: 0
+      height: 0,
+      indexOffset: 0
     }
 
     this.active = {
       animate: null,
-      index: config.origin,
+      index: this.config.origin,
     }
 
     this.bootConfig = {
@@ -75,7 +78,7 @@
       // build auxiliary methods
       _build_svg: function () {
         return {
-          head: '<svg version="1.1" xmlns="http://www.w3.org/2000/svg">',
+          head: '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="0" height="0">',
           foot: '</svg>'
         }
       },
@@ -245,7 +248,7 @@
 
           var style = self.bootStyle()
 
-          $('body').append(svg + style)
+          $('body').prepend(svg + style)
         })
       }
     },
@@ -313,7 +316,7 @@
 
         var multiple = multiple !== undefined ? multiple : self.nodes.slots.length
         var marginTop = String(-parseFloat(multiple * height)) + unit
-        var duration = Math.abs(+parseInt(multiple * speed))
+        var duration = Math.abs(+parseInt((multiple == 0 ? 1 : multiple) * speed))
 
         self._setBlurAndFade(blur, fade)
 
@@ -330,13 +333,13 @@
       // APIs
       prevSlot: function () {
         return {
-          index: this.active.index - 1 < 0 ? this.nodes.slots.length - 1 : this.active.index - 1,
+          index: this.active.index - 1 < 0 ? -1 : this.active.index - 1,
         }
       },
 
       nextSlot: function () {
         return {
-          index: this.active.index + 1 < this.nodes.slots.length ? this.active.index + 1 : 0
+          index: this.active.index < this.nodes.slots.length ? this.active.index + 1 : 0
         }
       },
 
@@ -369,7 +372,7 @@
             blur: 'fast',
             fade: true
           }, function () {
-            container.css("margin-top", 0)
+            container.css('margin-top', 0)
 
             !self.states.forceStop && self.roll(times, onCompleted)
           })
@@ -380,7 +383,7 @@
               blur: times > 1 ? 'fast' : 'medium',
               fade: true
             }, function () {
-              container.css("margin-top", 0)
+              container.css('margin-top', 0)
               self.roll(times - 1, onCompleted)
             })
           }
@@ -396,18 +399,15 @@
       gamble: function (config, gambleMethod) {
         var self = this
 
-        var container = self.nodes.container
-
         self.active.animate !== null && self.active.animate.stop()
 
         var random = typeof gambleMethod === 'function' ? gambleMethod() : self.randomSlot()
-        random.index === 0 && container.css('margin-top', (-self.params.height / 2) + self.params.unit)
 
         if (config.stopnow || config.repeats < 1) {
           self._animateMarginTop({
             blur: 'slow',
             fade: true,
-            multiple: random.index,
+            multiple: random.index + self.params.indexOffset,
             easing: 'easeOutBounce'
           }, function () {
             self.active.index = random.index
@@ -424,11 +424,11 @@
           })
         }
         else {
-          self.roll(config.repeats || 1)
+          self.roll(config.repeats || 1, config.onCompleted)
         }
       },
 
-      start: function (position) {
+      start: function (position, needReverse) {
         var self = this
 
         var nodes = self.nodes
@@ -446,8 +446,14 @@
         self.nodes.patchSlot = $(slots.get(0)).clone()
         self.nodes.patchSlot.appendTo(self.nodes.container)
 
-        position && self.nodes.container.css("margin-top", self._getMarginTop(self.config.origin))
-        machine.css("overflow", "hidden")
+        if (needReverse) {
+          self.nodes.reversePatchSlot = $(slots.get(slots.length - 1)).clone()
+          self.nodes.reversePatchSlot.prependTo(self.nodes.container)
+          self.params.indexOffset += 1
+        }
+
+        position && self.nodes.container.css('margin-top', self._getMarginTop(self.config.origin + self.params.indexOffset))
+        machine.css('overflow', 'hidden')
       }
     }
   )
@@ -486,7 +492,19 @@
 
         slotmachine.gamble({
           stopnow: true,
-          onCompleted: onCompleted
+          onCompleted: function (result) {
+            var result = result
+            var params = slotmachine.params
+            var len = slotmachine.nodes.slots.length
+
+            if (slotmachine.active.index == -1) {
+              slotmachine.nodes.container.css('margin-top', -(len * params.height) + params.unit)
+              slotmachine.active.index = len - 1
+              result.index = len - 1
+            }
+
+            onCompleted && onCompleted(result)
+          }
         }, slotmachine.prevSlot.bind(slotmachine))
       },
 
@@ -497,15 +515,25 @@
 
         slotmachine.gamble({
           stopnow: true,
-          onCompleted: onCompleted
+          onCompleted: function (result) {
+            var result = result
+            var params = slotmachine.params
+
+            if (slotmachine.active.index == slotmachine.nodes.slots.length) {
+              slotmachine.nodes.container.css('margin-top', -(params.indexOffset * params.height) + params.unit)
+              slotmachine.active.index = 0
+              result.index = 0
+            }
+            onCompleted && onCompleted(result)
+          }
         }, slotmachine.nextSlot.bind(slotmachine))
 
       },
 
-      stop: function (stopnowOrRepeats) {
-        var stopnowOrRepeats = stopnowOrRepeats || {
+      stop: function (settings) {
+        var settings = settings || {
             stopnow: true,
-            repeats: 0
+            onCompleted: null
           }
 
         slotmachine.states.forceStop = true
@@ -514,7 +542,7 @@
           clearTimeout(cycleTimer)
         }
 
-        slotmachine.gamble(stopnowOrRepeats)
+        slotmachine.gamble(settings)
       },
 
       cycle: function (settings) {
@@ -526,6 +554,7 @@
             onCompleted: null
           }
 
+        slotmachine.states.running = true
         if (slotmachine.states.forceStop)  return false
 
         cycleTimer = setTimeout(function () {
@@ -544,7 +573,7 @@
 
         var settings = settings || {}
 
-        slotmachine.start(settings.position)
+        slotmachine.start(settings.position, settings.needReverse)
 
         settings.auto && self.shuffle(onCompleted)
       },
