@@ -150,7 +150,7 @@
 
   var script = document.createElement('script')
   script.type = "text/javascript"
-  script.src = useJquery ? '/jquery.js' : '/zepto.min.js'
+  script.src = useJquery ? '/jquery.min.js' : '/zepto.min.js'
   script.onload = function () {
     $(document).ready(function () {
       window.build()

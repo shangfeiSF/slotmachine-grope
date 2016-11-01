@@ -34,6 +34,16 @@ app.get('/index.jq.html', function (req, res) {
   })
 })
 
+app.get('/all.html', function (req, res) {
+  var file = path.join(__dirname, '../pages/all.html')
+
+  fs.readFile(file, function (error, data) {
+    var html = data.toString('utf-8')
+    res.writeHead(200)
+    res.end(html)
+  })
+})
+
 app.listen(8080, function () {
   console.log('[Server] -- listening localhost:8080....'.green)
 })
