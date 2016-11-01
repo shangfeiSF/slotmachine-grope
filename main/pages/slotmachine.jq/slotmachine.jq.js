@@ -307,16 +307,16 @@
 
         var blur = config.blur || 'fast'
         var fade = config.fade !== undefined ? config.fade : true
-        var multiple = config.multiple
+        var endIndex = config.endIndex
         var speed = config.speed !== undefined ? config.speed : self.config.speed
         var easing = config.easing || 'linear'
 
         var height = self.params.height
         var unit = self.params.unit
 
-        var multiple = multiple !== undefined ? multiple : self.nodes.slots.length
-        var marginTop = String(-parseFloat(multiple * height)) + unit
-        var duration = Math.abs(+parseInt((multiple == 0 ? 1 : multiple) * speed))
+        var endIndex = endIndex !== undefined ? endIndex : self.nodes.slots.length
+        var marginTop = String(-parseFloat(endIndex * height)) + unit
+        var duration = Math.abs(+parseInt((endIndex == 0 ? 1 : endIndex) * speed))
 
         self._setBlurAndFade(blur, fade)
 
@@ -407,7 +407,7 @@
           self._animateMarginTop({
             blur: 'slow',
             fade: true,
-            multiple: random.index + self.params.indexOffset,
+            endIndex: random.index + self.params.indexOffset,
             easing: 'easeOutBounce'
           }, function () {
             self.active.index = random.index

@@ -136,7 +136,7 @@
   function build_floot_4() {
     var machine8 = $('#machine_8').slotMachine({
       origin: 1,
-      speed: 100
+      speed: 200
     })
 
     machine8.start({
@@ -151,7 +151,7 @@
     }
     var pause = $('#pause')
 
-    // machine8.cycle(settings)
+    machine8.cycle(settings)
 
     pause.click(function () {
       if (machine8.isRunning()) {
